@@ -22,12 +22,12 @@
 - [ ] Eval harness: accuracy, tool-choice correctness, guardrail adherence; publish benchmark
 - [ ] Tracing (OpenTelemetry), cost and latency per question
 
-## Claude Certified Architect – Foundations: where this project covers each domain
+## LLM architect certification (foundations): where this project covers each domain
 
 | Exam domain | Weight | Covered here by |
 |---|---|---|
 | Agentic architecture & orchestration | 27% | Tool design for multi-step analysis; workflow prompts; metric-first vs SQL-fallback paths |
-| Claude Code configuration & workflows | 20% | `claude mcp add` setup; build this project with Claude Code; project CLAUDE.md (todo) |
+| LLM coding-agent configuration & workflows | 20% | MCP client setup; build this project with an LLM coding agent; project agent context file |
 | Prompt engineering & structured output | 20% | Server instructions; tool docstrings as prompts; structured tool results |
 | Tool design & MCP integration | 18% | Tools vs resources vs prompts; annotations; self-explaining errors; stdio transport |
 | Context management & reliability | 15% | Row caps, compact results, glossary as a resource, timeouts, audit trail |

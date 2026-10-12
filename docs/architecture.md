@@ -2,7 +2,7 @@
 
 ```mermaid
 flowchart LR
-    U[User] --> C[Claude / MCP client]
+    U[User] --> C[LLM / MCP client]
     C -- stdio JSON-RPC --> S[MCPServer: cpg-analytics]
     subgraph S[cpg-analytics MCP server]
         T[Tools / Resources / Prompts] --> G{Governance}

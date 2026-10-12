@@ -10,7 +10,7 @@ commercial data: sell-out, trade promotions (post-event analysis and ROI), and s
 
 Built on fictional health & hygiene brands. No client data.
 
-> Ask Claude: *"Which promotions at MegaMart didn't pay back last quarter, and why?"*
+> Ask an LLM: *"Which promotions at MegaMart didn't pay back last quarter, and why?"*
 > It answers using one approved ROI definition, with every query checked by guardrails and written to an audit log.
 
 ## Why this exists
@@ -35,13 +35,9 @@ uv run cpg-mcp-generate      # builds data/cpg.duckdb (2 years, 5 retailers, 20 
 uv run pytest -q             # 19 tests: guardrails, RBAC, semantic layer, end-to-end tools
 ```
 
-### Connect to Claude Code
+### Connect an LLM client
 
-```bash
-claude mcp add cpg-analytics -- uv run --directory /path/to/cpg-analytics-mcp cpg-analytics-mcp
-```
-
-### Connect to Claude Desktop
+Any MCP-compatible LLM client can launch the server over stdio. Most use this `mcpServers` config format:
 
 ```json
 {
