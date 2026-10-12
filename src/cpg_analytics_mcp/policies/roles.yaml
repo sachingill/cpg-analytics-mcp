@@ -1,0 +1,30 @@
+# Role-based access policy.
+#
+# In production the role comes from the caller's identity (OAuth token claims on the
+# HTTP transport). Locally it is set with CPG_MCP_ROLE.
+#
+#   tables          tables/views the role may query with raw SQL ("*" = all)
+#   blocked_columns columns that may never appear in raw SQL (also hidden from describe)
+#   metrics         governed metrics the role may request ("*" = all)
+#
+# Governed-metric pattern: an analyst cannot read unit cost (cogs) directly, but CAN
+# request promo ROI, because the metric is computed server-side by approved logic.
+
+roles:
+  analyst:
+    description: Commercial / RGM analyst. Full sales & promo access, no unit costs.
+    tables: "*"
+    blocked_columns: [cogs_per_unit]
+    metrics: "*"
+
+  sales:
+    description: Key account team. Sell-out and promotions only; no margins, no targets.
+    tables: [dim_week, dim_product, dim_retailer, fact_sales, fact_promotions, v_sales_enriched]
+    blocked_columns: [cogs_per_unit, incremental_gross_margin]
+    metrics: [sales_units, sales_value, incremental_units, promo_uplift_pct, promo_share_of_volume, avg_price]
+
+  finance:
+    description: Finance / trade investment. Everything, including costs.
+    tables: "*"
+    blocked_columns: []
+    metrics: "*"

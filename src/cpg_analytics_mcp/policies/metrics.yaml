@@ -1,0 +1,85 @@
+# Semantic layer: governed CPG metrics.
+#
+# Each metric has ONE approved definition. The agent picks a metric + dimensions +
+# filters; the server builds the SQL. This is what stops "five analysts, five ROIs".
+
+sources:
+  sales:
+    table: v_sales_enriched
+    time_column: week_ending
+    description: Weekly sell-out (retailer EPOS) by SKU x retailer.
+    dimensions: [retailer_name, channel, brand, category, ppg, sku_name, fiscal_year,
+                 fiscal_quarter, fiscal_month, month_start, week_ending, is_promo, mechanic]
+  promo:
+    table: v_promo_performance
+    time_column: start_week
+    description: One row per promotion event with post-event analysis.
+    dimensions: [promo_id, retailer_name, channel, brand, category, ppg, mechanic,
+                 discount_band, feature, display, duration_weeks]
+  shipments:
+    table: v_ship_attainment
+    time_column: month_start
+    description: Monthly sell-in vs target by retailer x brand.
+    dimensions: [retailer_name, channel, brand, fiscal_year, fiscal_month, month_start]
+
+metrics:
+  sales_units:
+    source: sales
+    expr: SUM(units)
+    description: Consumer units sold through the till (sell-out).
+  sales_value:
+    source: sales
+    expr: ROUND(SUM(sales_value), 2)
+    description: Sell-out value at the actual (promoted or regular) price, GBP.
+  avg_price:
+    source: sales
+    expr: ROUND(SUM(sales_value) / NULLIF(SUM(units), 0), 2)
+    description: Volume-weighted average selling price per unit.
+  incremental_units:
+    source: sales
+    expr: ROUND(SUM(CASE WHEN is_promo THEN units - baseline_units ELSE 0 END), 0)
+    description: Units sold on promotion above the baseline (gross; excludes post-promo dip).
+  promo_uplift_pct:
+    source: sales
+    expr: ROUND(SUM(CASE WHEN is_promo THEN units END) / NULLIF(SUM(CASE WHEN is_promo THEN baseline_units END), 0) - 1, 3)
+    description: Promoted volume vs baseline during promo weeks. 1.0 = doubled.
+  promo_share_of_volume:
+    source: sales
+    expr: ROUND(SUM(CASE WHEN is_promo THEN units ELSE 0 END) / NULLIF(SUM(units), 0), 3)
+    description: Share of volume sold on promotion. High values signal promo dependency.
+
+  trade_spend:
+    source: promo
+    expr: ROUND(SUM(total_trade_spend), 2)
+    description: Variable (discount funding) + fixed (feature/display fees) promo cost, GBP.
+  incremental_gross_margin:
+    source: promo
+    expr: ROUND(SUM(incremental_gross_margin), 2)
+    description: Margin on net incremental units (after post-promo dip), at list price less COGS.
+  promo_roi:
+    source: promo
+    expr: ROUND(SUM(incremental_gross_margin) / NULLIF(SUM(total_trade_spend), 0), 3)
+    description: >
+      Gross promo ROI = incremental gross margin / total trade spend. Above 1.0 means
+      the promotion paid back its investment. (Net ROI = gross ROI - 1.)
+  promo_count:
+    source: promo
+    expr: COUNT(*)
+    description: Number of promotion events.
+  avg_uplift_per_event:
+    source: promo
+    expr: ROUND(AVG(uplift_pct), 3)
+    description: Average uplift across events (unweighted).
+
+  ship_attainment_pct:
+    source: shipments
+    expr: ROUND(SUM(shipped_value) / NULLIF(SUM(target_value), 0), 3)
+    description: Shipped (sell-in) value vs target. 1.0 = on target.
+  shipped_value:
+    source: shipments
+    expr: ROUND(SUM(shipped_value), 2)
+    description: Sell-in value shipped to retailers at list price, GBP.
+  case_fill_rate:
+    source: shipments
+    expr: ROUND(SUM(shipped_units) / NULLIF(SUM(ordered_units), 0), 3)
+    description: Share of ordered units actually shipped (service level).
