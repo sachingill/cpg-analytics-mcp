@@ -37,7 +37,15 @@ uv run pytest -q             # 19 tests: guardrails, RBAC, semantic layer, end-t
 
 ### Connect an LLM client
 
-Any MCP-compatible LLM client can launch the server over stdio. Most use this `mcpServers` config format:
+Any MCP-compatible LLM client can launch the server over stdio.
+
+**Claude Code** (one command):
+
+```bash
+claude mcp add cpg-analytics -e CPG_MCP_ROLE=analyst -- uv run --directory /path/to/cpg-analytics-mcp cpg-analytics-mcp
+```
+
+**Claude Desktop and other MCP clients** use the standard `mcpServers` config format:
 
 ```json
 {
