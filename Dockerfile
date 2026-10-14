@@ -28,6 +28,8 @@ FROM python:3.12-slim-bookworm
 RUN useradd --create-home --uid 1000 app
 WORKDIR /app
 COPY --from=builder --chown=app:app /app /app
+# WORKDIR leaves /app owned by root; only the audit log dir needs to be writable.
+RUN mkdir -p /app/logs && chown app:app /app/logs
 
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1 \
