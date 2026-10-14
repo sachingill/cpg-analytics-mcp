@@ -132,7 +132,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         """
         def body():
             cap = max(1, min(max_rows, app.settings.max_rows))
-            checked = check_sql(sql, app.policy, app.table_columns)
+            checked = check_sql(sql, app.policy, app.table_columns, app.semantic.covering_metrics())
             res = app.wh.query(checked.sql, max_rows=cap)
             return {"columns": res.columns, "rows": res.rows, "row_count": len(res.rows),
                     "truncated": res.truncated, "tables": checked.tables}

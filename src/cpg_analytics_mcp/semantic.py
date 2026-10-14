@@ -19,6 +19,7 @@ class Metric:
     source: str
     expr: str
     description: str
+    derived_from: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -38,9 +39,18 @@ class SemanticLayer:
             for k, v in spec["sources"].items()
         }
         self.metrics = {
-            k: Metric(k, v["source"], v["expr"], " ".join(v["description"].split()))
+            k: Metric(k, v["source"], v["expr"], " ".join(v["description"].split()),
+                      tuple(c.lower() for c in v.get("derived_from", [])))
             for k, v in spec["metrics"].items()
         }
+
+    def covering_metrics(self) -> dict[str, list[str]]:
+        """{restricted column: [metrics computed from it]}, from `derived_from`."""
+        out: dict[str, list[str]] = {}
+        for m in self.metrics.values():
+            for col in m.derived_from:
+                out.setdefault(col, []).append(m.name)
+        return {c: sorted(ms) for c, ms in out.items()}
 
     def build(
         self,

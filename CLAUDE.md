@@ -12,7 +12,7 @@ All data is synthetic and fictional — never add real client data, names, or co
 ```bash
 uv sync                    # install
 uv run cpg-mcp-generate    # build data/cpg.duckdb (deterministic, SEED=42)
-uv run pytest -q           # 19 tests; must stay green
+uv run pytest -q           # 22 tests; must stay green
 uv run cpg-analytics-mcp   # run server over stdio
 ```
 

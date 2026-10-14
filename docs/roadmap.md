@@ -21,6 +21,9 @@
 - [ ] Golden question set (50 business questions with expected answers)
 - [ ] Eval harness: accuracy, tool-choice correctness, guardrail adherence; publish benchmark
 - [ ] Tracing (OpenTelemetry), cost and latency per question
+- [ ] Close the metric-bypass gap: `run_sql` can re-aggregate governed columns with a different formula
+      (e.g. ROI over variable spend only: Grocery 1.35 vs governed 1.02). Add an AST rule that rejects
+      aggregates over metric-input columns and redirects to `get_metric`; measure tool-choice rate in evals.
 
 ## LLM architect certification (foundations): where this project covers each domain
 

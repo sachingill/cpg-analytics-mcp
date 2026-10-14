@@ -2,6 +2,9 @@
 #
 # Each metric has ONE approved definition. The agent picks a metric + dimensions +
 # filters; the server builds the SQL. This is what stops "five analysts, five ROIs".
+#
+# derived_from (optional): restricted raw columns a metric is computed from. Used to point
+# a role at the governed metric when raw SQL hits a blocked column.
 
 sources:
   sales:
@@ -55,10 +58,12 @@ metrics:
   incremental_gross_margin:
     source: promo
     expr: ROUND(SUM(incremental_gross_margin), 2)
+    derived_from: [cogs_per_unit, incremental_gross_margin]
     description: Margin on net incremental units (after post-promo dip), at list price less COGS.
   promo_roi:
     source: promo
     expr: ROUND(SUM(incremental_gross_margin) / NULLIF(SUM(total_trade_spend), 0), 3)
+    derived_from: [cogs_per_unit, incremental_gross_margin]
     description: >
       Gross promo ROI = incremental gross margin / total trade spend. Above 1.0 means
       the promotion paid back its investment. (Net ROI = gross ROI - 1.)

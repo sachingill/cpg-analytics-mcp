@@ -65,6 +65,24 @@ def test_blocked_column_and_star_for_analyst(settings):
     check_sql("SELECT brand, COUNT(*) FROM dim_product GROUP BY brand", analyst, COLS)
 
 
+def test_blocked_column_hint_names_usable_metric(settings):
+    # Analyst may use promo_roi, so the error should point at it.
+    analyst = load_role(settings.roles_file, "analyst")
+    covering = SemanticLayer(settings.metrics_file).covering_metrics()
+    with pytest.raises(GuardrailError, match=r"get_metric with .*promo_roi"):
+        check_sql("SELECT cogs_per_unit FROM dim_product", analyst, COLS, covering)
+
+
+def test_blocked_column_hint_never_suggests_denied_metric(settings):
+    # Sales may not use any cost-based metric, so suggesting get_metric would be a dead end.
+    sales = load_role(settings.roles_file, "sales")
+    covering = SemanticLayer(settings.metrics_file).covering_metrics()
+    with pytest.raises(GuardrailError) as exc:
+        check_sql("SELECT cogs_per_unit FROM dim_product", sales, COLS, covering)
+    assert "get_metric" not in str(exc.value)
+    assert "No governed metric exposes it" in str(exc.value)
+
+
 def test_ctes_allowed(settings):
     finance = load_role(settings.roles_file, "finance")
     q = check_sql("WITH x AS (SELECT sku_id FROM fact_sales) SELECT COUNT(*) FROM x", finance, COLS)
@@ -124,6 +142,12 @@ def test_sales_role_metric_denied(settings):
     server = create_server(replace(settings, role="sales"))
     with pytest.raises(ToolError, match="may not use"):
         call(server, "get_metric", metrics=["promo_roi"])
+
+
+def test_sales_blocked_column_error_end_to_end(settings):
+    server = create_server(replace(settings, role="sales"))
+    with pytest.raises(ToolError, match="requires additional access"):
+        call(server, "run_sql", sql="SELECT sku_name, cogs_per_unit FROM dim_product")
 
 
 def test_describe_hides_blocked_columns(settings):

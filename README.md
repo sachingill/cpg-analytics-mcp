@@ -32,7 +32,7 @@ Demo agents talk to a database. Production agents need:
 ```bash
 uv sync
 uv run cpg-mcp-generate      # builds data/cpg.duckdb (2 years, 5 retailers, 20 SKUs, ~500 promos)
-uv run pytest -q             # 19 tests: guardrails, RBAC, semantic layer, end-to-end tools
+uv run pytest -q             # 22 tests: guardrails, RBAC, semantic layer, end-to-end tools
 ```
 
 ### Connect an LLM client

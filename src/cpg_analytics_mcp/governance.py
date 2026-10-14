@@ -72,8 +72,22 @@ class CheckedQuery:
     tables: list[str] = field(default_factory=list)
 
 
-def check_sql(sql: str, policy: RolePolicy, table_columns: dict[str, set[str]]) -> CheckedQuery:
-    """Validate an LLM-written query. Returns normalized SQL or raises GuardrailError."""
+def _blocked_column_hint(col: str, policy: RolePolicy, covering: dict[str, list[str]]) -> str:
+    """Point the model at a governed metric only if this role may actually use one."""
+    usable = [m for m in covering.get(col.lower(), []) if policy.can_use_metric(m)]
+    if usable:
+        return f"Use get_metric with {usable} instead; they apply the approved definition."
+    return ("No governed metric exposes it to this role. "
+            "Tell the user this data requires additional access.")
+
+
+def check_sql(sql: str, policy: RolePolicy, table_columns: dict[str, set[str]],
+              covering_metrics: dict[str, list[str]] | None = None) -> CheckedQuery:
+    """Validate an LLM-written query. Returns normalized SQL or raises GuardrailError.
+
+    covering_metrics maps restricted columns to the governed metrics computed from them,
+    so a blocked-column error can suggest the right metric (or say there is none).
+    """
     try:
         statements = [s for s in sqlglot.parse(sql, read="duckdb") if s is not None]
     except sqlglot.errors.ParseError as e:
@@ -112,7 +126,7 @@ def check_sql(sql: str, policy: RolePolicy, table_columns: dict[str, set[str]]) 
             if col.name.lower() in policy.blocked_columns:
                 raise GuardrailError(
                     f"Column '{col.name}' is restricted for role '{policy.name}'. "
-                    "Use a governed metric (get_metric) instead.")
+                    + _blocked_column_hint(col.name, policy, covering_metrics or {}))
         for star in root.find_all(exp.Star):
             if isinstance(star.parent, exp.Count):
                 continue
