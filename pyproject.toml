@@ -25,4 +25,13 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
+    "ruff>=0.17.0",
 ]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+# E/F: errors and unused names · I: import order · UP: modern syntax · B: likely bugs
+select = ["E", "F", "I", "UP", "B"]

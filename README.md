@@ -61,6 +61,30 @@ claude mcp add cpg-analytics -e CPG_MCP_ROLE=analyst -- uv run --directory /path
 
 Switch `CPG_MCP_ROLE` to `sales` or `finance` to see the access policy change.
 
+### Run with Docker
+
+The image bakes in the synthetic database and runs as a non-root user. `-i` keeps stdin open for the stdio transport.
+
+```bash
+docker build -t cpg-analytics-mcp .
+python3 scripts/smoke_test.py docker run -i --rm cpg-analytics-mcp   # handshake + tool calls
+```
+
+Point an MCP client at the container instead of `uv`:
+
+```json
+{
+  "mcpServers": {
+    "cpg-analytics": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "-e", "CPG_MCP_ROLE=analyst", "cpg-analytics-mcp"]
+    }
+  }
+}
+```
+
+The audit log is written inside the container (`/app/logs/audit.jsonl`), so with `--rm` it is lost when the container exits. Mount a volume on `/app/logs` to keep it.
+
 ## Tools, resources, prompts
 
 | Type | Name | Purpose |

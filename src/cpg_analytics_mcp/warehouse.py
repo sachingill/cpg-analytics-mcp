@@ -21,7 +21,7 @@ class QueryResult:
     truncated: bool
 
     def as_records(self) -> list[dict[str, Any]]:
-        return [dict(zip(self.columns, r)) for r in self.rows]
+        return [dict(zip(self.columns, r, strict=True)) for r in self.rows]
 
 
 class Warehouse:

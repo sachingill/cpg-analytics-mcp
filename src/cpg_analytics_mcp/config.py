@@ -21,7 +21,7 @@ class Settings:
     metrics_file: Path
 
     @classmethod
-    def from_env(cls) -> "Settings":
+    def from_env(cls) -> Settings:
         env = os.environ.get
         return cls(
             db_path=Path(env("CPG_MCP_DB", PROJECT_ROOT / "data" / "cpg.duckdb")),

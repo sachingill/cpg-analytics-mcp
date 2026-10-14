@@ -156,5 +156,6 @@ def test_describe_hides_blocked_columns(settings):
 
 
 def test_row_cap(settings):
-    out = call(create_server(replace(settings, max_rows=5)), "run_sql", sql="SELECT sku_id FROM fact_sales", max_rows=1000)
+    server = create_server(replace(settings, max_rows=5))
+    out = call(server, "run_sql", sql="SELECT sku_id FROM fact_sales", max_rows=1000)
     assert out["row_count"] == 5 and out["truncated"] is True

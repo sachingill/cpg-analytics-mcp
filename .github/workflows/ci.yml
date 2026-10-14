@@ -5,7 +5,21 @@ on:
     branches: [main]
   pull_request:
 
+# Least privilege: the workflow only needs to read the repo.
+permissions:
+  contents: read
+
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Install dependencies
+        run: uv sync --locked
+      - name: Lint
+        run: uv run ruff check .
+
   test:
     runs-on: ubuntu-latest
     steps:
@@ -15,3 +29,13 @@ jobs:
         run: uv sync --locked
       - name: Run tests
         run: uv run pytest -q
+
+  docker:
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t cpg-analytics-mcp .
+      - name: Smoke test over stdio (real MCP handshake + tool calls)
+        run: python3 scripts/smoke_test.py docker run -i --rm cpg-analytics-mcp
