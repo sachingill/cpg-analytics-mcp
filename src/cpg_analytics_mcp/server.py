@@ -17,9 +17,10 @@ from mcp.server.mcpserver.exceptions import ToolError
 from mcp.types import ToolAnnotations
 
 from cpg_analytics_mcp.config import PACKAGE_DIR, Settings
+from cpg_analytics_mcp.dialect import to_dialect
 from cpg_analytics_mcp.governance import AuditLog, GuardrailError, check_sql, load_role
 from cpg_analytics_mcp.semantic import MetricError, SemanticLayer
-from cpg_analytics_mcp.warehouse import QueryTimeout, Warehouse
+from cpg_analytics_mcp.warehouse import QueryTimeout, Warehouse, load_warehouse
 
 # stdio transport owns stdout; all logs go to stderr.
 logging.basicConfig(stream=sys.stderr, level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -60,7 +61,7 @@ class App:
 
     @cached_property
     def wh(self) -> Warehouse:
-        return Warehouse(self.settings.db_path, self.settings.query_timeout_s)
+        return load_warehouse(self.settings)
 
     @cached_property
     def catalog(self) -> dict[str, dict]:
@@ -132,7 +133,8 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         """
         def body():
             cap = max(1, min(max_rows, app.settings.max_rows))
-            checked = check_sql(sql, app.policy, app.table_columns, app.semantic.covering_metrics())
+            checked = check_sql(sql, app.policy, app.table_columns, app.semantic.covering_metrics(),
+                                dialect=app.wh.dialect)
             res = app.wh.query(checked.sql, max_rows=cap)
             return {"columns": res.columns, "rows": res.rows, "row_count": len(res.rows),
                     "truncated": res.truncated, "tables": checked.tables}
@@ -176,7 +178,7 @@ def create_server(settings: Settings | None = None) -> MCPServer:
             if denied:
                 raise ToolError(f"Role '{app.policy.name}' may not use metric(s) {denied}.")
             sql, params = app.semantic.build(metrics, group_by, filters, start_date, end_date)
-            res = app.wh.query(sql, params, max_rows=app.settings.max_rows)
+            res = app.wh.query(to_dialect(sql, app.wh.dialect), params, max_rows=app.settings.max_rows)
             return {"records": res.as_records(), "row_count": len(res.rows), "truncated": res.truncated,
                     "definitions": {m: app.semantic.metrics[m].description for m in metrics}}
         return app.run("get_metric", args, body)
@@ -191,7 +193,8 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         def body():
             if not app.policy.can_use_metric("promo_roi"):
                 raise ToolError(f"Role '{app.policy.name}' may not view promotion financials.")
-            res = app.wh.query("SELECT * FROM v_promo_performance WHERE promo_id = ?", [promo_id], max_rows=1)
+            sql = to_dialect("SELECT * FROM v_promo_performance WHERE promo_id = ?", app.wh.dialect)
+            res = app.wh.query(sql, [promo_id], max_rows=1)
             if not res.rows:
                 raise ToolError(f"Promotion '{promo_id}' not found.")
             p = res.as_records()[0]

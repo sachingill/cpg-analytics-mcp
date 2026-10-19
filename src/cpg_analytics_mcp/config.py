@@ -12,6 +12,7 @@ PACKAGE_DIR = Path(__file__).resolve().parent
 
 @dataclass(frozen=True)
 class Settings:
+    warehouse: str
     db_path: Path
     role: str
     audit_log: Path
@@ -24,6 +25,7 @@ class Settings:
     def from_env(cls) -> Settings:
         env = os.environ.get
         return cls(
+            warehouse=env("CPG_MCP_WAREHOUSE", "duckdb"),
             db_path=Path(env("CPG_MCP_DB", PROJECT_ROOT / "data" / "cpg.duckdb")),
             role=env("CPG_MCP_ROLE", "analyst"),
             audit_log=Path(env("CPG_MCP_AUDIT_LOG", PROJECT_ROOT / "logs" / "audit.jsonl")),

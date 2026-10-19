@@ -34,7 +34,7 @@ Demo agents talk to a database. Production agents need:
 ```bash
 uv sync
 uv run cpg-mcp-generate      # builds data/cpg.duckdb (2 years, 5 retailers, 20 SKUs, ~500 promos)
-uv run pytest -q             # 26 tests: guardrails, RBAC, semantic layer, promo economics, end-to-end tools
+uv run pytest -q             # 29 tests: guardrails, RBAC, semantic layer, promo economics, end-to-end tools
 ```
 
 ### Connect an LLM client
@@ -124,6 +124,7 @@ and an EDLP discounter whose shoppers barely respond to promotions.
 | Env var | Default | |
 |---|---|---|
 | `CPG_MCP_ROLE` | `analyst` | `analyst` / `sales` / `finance` |
+| `CPG_MCP_WAREHOUSE` | `duckdb` | `duckdb` built in; `snowflake` / `databricks` via [mcp-warehouse-adapters](https://github.com/sachingill/mcp-warehouse-adapters) |
 | `CPG_MCP_DB` | `data/cpg.duckdb` | |
 | `CPG_MCP_MAX_ROWS` | `200` | Hard cap per query |
 | `CPG_MCP_TIMEOUT_S` | `10` | Query timeout |

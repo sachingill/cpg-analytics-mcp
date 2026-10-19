@@ -8,9 +8,11 @@ from mcp.server.mcpserver.exceptions import ToolError
 
 from cpg_analytics_mcp.config import Settings
 from cpg_analytics_mcp.data.generate import build
+from cpg_analytics_mcp.dialect import to_dialect
 from cpg_analytics_mcp.governance import GuardrailError, check_sql, load_role
 from cpg_analytics_mcp.semantic import MetricError, SemanticLayer
 from cpg_analytics_mcp.server import create_server
+from cpg_analytics_mcp.warehouse import load_warehouse
 
 
 @pytest.fixture(scope="session")
@@ -83,6 +85,15 @@ def test_blocked_column_hint_never_suggests_denied_metric(settings):
     assert "No governed metric exposes it" in str(exc.value)
 
 
+def test_guardrails_check_in_the_warehouse_dialect(settings):
+    analyst = load_role(settings.roles_file, "analyst")
+    # parsed and re-emitted as Databricks SQL (STRING), not DuckDB (VARCHAR/TEXT)
+    checked = check_sql("SELECT CAST(brand AS STRING) FROM dim_product", analyst, COLS, dialect="databricks")
+    assert "AS STRING" in checked.sql
+    with pytest.raises(GuardrailError, match="restricted"):
+        check_sql("SELECT cogs_per_unit FROM dim_product", analyst, COLS, dialect="snowflake")
+
+
 def test_ctes_allowed(settings):
     finance = load_role(settings.roles_file, "finance")
     q = check_sql("WITH x AS (SELECT sku_id FROM fact_sales) SELECT COUNT(*) FROM x", finance, COLS)
@@ -103,6 +114,19 @@ def test_semantic_rejects_unknown_dimension_and_mixed_sources(settings):
         sl.build(["sales_units"], group_by=["sku_id; DROP TABLE x"])
     with pytest.raises(MetricError, match="different sources"):
         sl.build(["sales_units", "promo_roi"])
+
+
+def test_semantic_sql_translates_per_warehouse(settings):
+    sql, params = SemanticLayer(settings.metrics_file).build(["promo_roi"], ["channel"], {"brand": "Neurex"})
+    assert to_dialect(sql, "duckdb") == sql
+    databricks = to_dialect(sql, "databricks")
+    assert "CAST(brand AS STRING) IN (?)" in databricks  # placeholders survive translation
+    assert databricks.count("?") == len(params)
+
+
+def test_unknown_warehouse_is_explained(settings):
+    with pytest.raises(ValueError, match="Unknown warehouse 'oracle'.*mcp-warehouse-adapters"):
+        load_warehouse(replace(settings, warehouse="oracle"))
 
 
 def test_semantic_binds_filter_values(settings):

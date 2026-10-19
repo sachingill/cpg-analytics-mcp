@@ -12,7 +12,7 @@ All data is synthetic and fictional — never add real client data, names, or co
 ```bash
 uv sync                    # install
 uv run cpg-mcp-generate    # build data/cpg.duckdb (deterministic, SEED=42)
-uv run pytest -q           # 26 tests; must stay green
+uv run pytest -q           # 29 tests; must stay green
 uv run cpg-analytics-mcp   # run server over stdio
 ```
 
@@ -21,7 +21,8 @@ uv run cpg-analytics-mcp   # run server over stdio
 - `governance.py` — role policies, sqlglot AST guardrails (allowlist: one SELECT; no DML/DDL, no file functions; table/column rules), JSONL audit log.
 - `semantic.py` + `policies/metrics.yaml` — governed metrics: identifiers from allowlists, values as bound params.
 - `policies/roles.yaml` — analyst / sales / finance. Governed-metric pattern: analyst can't read `cogs_per_unit` but can get `promo_roi`.
-- `warehouse.py` — DuckDB, read-only, external access off, config locked, row cap, timeout via interrupt.
+- `warehouse.py` — `Warehouse` Protocol (`dialect`, `catalog()`, `query()`) + `load_warehouse()` factory: DuckDB built in (read-only, external access off, config locked, row cap, timeout via interrupt); other warehouses are plug-ins via the `cpg_analytics_mcp.warehouses` entry-point group. See `docs/warehouse-adapters.md`.
+- `dialect.py` — governed SQL is written once in DuckDB dialect; `to_dialect()` translates it per warehouse with sqlglot. `check_sql` parses in the warehouse's dialect.
 - `data/generate.py` — synthetic world + SQL views (`v_sales_enriched`, `v_promo_performance`, `v_ship_attainment`). Calibrated so ~25% of promos pay back, ROI falls with discount depth, feature+display helps, discounter (EDLP) worst. Cross-product effects between a brand's two PPGs (`CROSS_EFFECTS`): substitutes cannibalise, complements get a halo; measured from data in the view, exposed as `range_roi`.
 - `knowledge/cpg_glossary.md` — business definitions served as `cpg://glossary`.
 - `docs/architecture.md`, `docs/roadmap.md` — design decisions and next steps.

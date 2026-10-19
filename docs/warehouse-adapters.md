@@ -1,6 +1,6 @@
 # Design note: warehouse adapters
 
-**Status:** proposed · **Scope:** Slice 1 (core refactor in this repo). Snowflake and Databricks adapters live in
+**Status:** Slice 1 implemented · **Scope:** Slice 1 (core refactor in this repo). Snowflake and Databricks adapters live in
 [`mcp-warehouse-adapters`](https://github.com/sachingill/mcp-warehouse-adapters).
 
 ## Problem
@@ -27,7 +27,7 @@ should not require editing the governance or semantic code, because those are wh
    platform's dialect, replacing the two hard-coded `"duckdb"` strings.
 4. **Adapters are plug-ins.** `CPG_MCP_WAREHOUSE=duckdb|snowflake|databricks` selects one; a factory resolves it
    through the `cpg_analytics_mcp.warehouses` entry-point group. Core never imports platform drivers.
-5. **Shared vs per-platform.** Shared: result and error types, row cap (`cap_rows()`, LIMIT n+1 via sqlglot),
+5. **Shared vs per-platform.** Shared: result and error types, row cap (`cap_rows()`, a LIMIT n+1 wrapper valid in all three dialects),
    `to_dialect()`, catalog shape, contract tests. Per adapter: connection and auth, timeout mechanism,
    placeholder style, catalog source, query tags, read-only enforcement.
 6. **Loading data is not querying.** Loaders for the synthetic data are scripts in the adapters repo, not part of

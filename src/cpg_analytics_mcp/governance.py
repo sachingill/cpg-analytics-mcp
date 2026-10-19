@@ -19,6 +19,8 @@ import sqlglot
 import yaml
 from sqlglot import exp
 
+from cpg_analytics_mcp.dialect import CANONICAL
+
 FORBIDDEN_NODES = (
     exp.Insert, exp.Update, exp.Delete, exp.Merge, exp.Drop, exp.Create, exp.Alter,
     exp.Command, exp.Copy, exp.Set, exp.Use, exp.Transaction, exp.Commit, exp.Rollback,
@@ -82,14 +84,15 @@ def _blocked_column_hint(col: str, policy: RolePolicy, covering: dict[str, list[
 
 
 def check_sql(sql: str, policy: RolePolicy, table_columns: dict[str, set[str]],
-              covering_metrics: dict[str, list[str]] | None = None) -> CheckedQuery:
+              covering_metrics: dict[str, list[str]] | None = None, dialect: str = CANONICAL) -> CheckedQuery:
     """Validate an LLM-written query. Returns normalized SQL or raises GuardrailError.
 
     covering_metrics maps restricted columns to the governed metrics computed from them,
     so a blocked-column error can suggest the right metric (or say there is none).
+    dialect is the warehouse's SQL dialect: the query is parsed and re-emitted in it.
     """
     try:
-        statements = [s for s in sqlglot.parse(sql, read="duckdb") if s is not None]
+        statements = [s for s in sqlglot.parse(sql, read=dialect) if s is not None]
     except sqlglot.errors.ParseError as e:
         raise GuardrailError(f"SQL could not be parsed: {str(e).splitlines()[0]}") from e
 
@@ -136,7 +139,7 @@ def check_sql(sql: str, policy: RolePolicy, table_columns: dict[str, set[str]],
                     "SELECT * is not allowed here because the table contains restricted "
                     "columns. List the columns you need explicitly.")
 
-    return CheckedQuery(sql=root.sql(dialect="duckdb"), tables=sorted(set(tables)))
+    return CheckedQuery(sql=root.sql(dialect=dialect), tables=sorted(set(tables)))
 
 
 class AuditLog:
