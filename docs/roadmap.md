@@ -14,7 +14,7 @@
 - [ ] Snowflake adapter (Snowpark / connector, key-pair auth, warehouse + role per user)
 - [ ] Databricks adapter (SQL warehouse, Unity Catalog permissions as the source of truth)
 - [ ] Cannibalisation + halo in the generator and promo analysis
-- [ ] Dockerfile + GitHub Actions (lint, tests)
+- [x] Dockerfile + GitHub Actions (lint, tests, container smoke test)
 - [ ] Architecture diagram image + 2-minute demo video
 
 ## Project 2 (Nov): evals and observability
@@ -24,13 +24,3 @@
 - [ ] Close the metric-bypass gap: `run_sql` can re-aggregate governed columns with a different formula
       (e.g. ROI over variable spend only: Grocery 1.35 vs governed 1.02). Add an AST rule that rejects
       aggregates over metric-input columns and redirects to `get_metric`; measure tool-choice rate in evals.
-
-## LLM architect certification (foundations): where this project covers each domain
-
-| Exam domain | Weight | Covered here by |
-|---|---|---|
-| Agentic architecture & orchestration | 27% | Tool design for multi-step analysis; workflow prompts; metric-first vs SQL-fallback paths |
-| LLM coding-agent configuration & workflows | 20% | MCP client setup; build this project with an LLM coding agent; project agent context file |
-| Prompt engineering & structured output | 20% | Server instructions; tool docstrings as prompts; structured tool results |
-| Tool design & MCP integration | 18% | Tools vs resources vs prompts; annotations; self-explaining errors; stdio transport |
-| Context management & reliability | 15% | Row caps, compact results, glossary as a resource, timeouts, audit trail |

@@ -130,4 +130,4 @@ and an EDLP discounter whose shoppers barely respond to promotions.
 ## Docs
 
 - [Architecture](docs/architecture.md)
-- [Roadmap and certification mapping](docs/roadmap.md)
+- [Roadmap](docs/roadmap.md)

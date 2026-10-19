@@ -24,7 +24,7 @@ uv run cpg-analytics-mcp   # run server over stdio
 - `warehouse.py` — DuckDB, read-only, external access off, config locked, row cap, timeout via interrupt.
 - `data/generate.py` — synthetic world + SQL views (`v_sales_enriched`, `v_promo_performance`, `v_ship_attainment`). Calibrated so ~25% of promos pay back, ROI falls with discount depth, feature+display helps, discounter (EDLP) worst.
 - `knowledge/cpg_glossary.md` — business definitions served as `cpg://glossary`.
-- `docs/architecture.md`, `docs/roadmap.md` — design decisions and next steps (incl. LLM architect certification domain mapping).
+- `docs/architecture.md`, `docs/roadmap.md` — design decisions and next steps.
 
 ## Conventions
 - Logs go to stderr only (stdout is the stdio transport).
