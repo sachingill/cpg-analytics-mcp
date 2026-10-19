@@ -36,6 +36,12 @@ Promotions are planned at PPG × retailer level.
 - Companies define ROI differently (gross vs net, margin vs revenue, with/without dip). Always state which one you use. This server's `promo_roi` metric is **gross ROI, net of post-promo dip**.
 - Typical industry finding: a large share of promotions do not pay back.
 
+## Cannibalisation and halo
+- **Cannibalisation**: a promotion pulls sales from the manufacturer's *own* non-promoted products (e.g. liquid detergent on deal takes buyers from pods). That volume is moved, not gained, often from a higher-margin item.
+- **Halo**: a promotion lifts sales of related non-promoted products (e.g. toothpaste on display lifts the same brand's mouthwash). Feature and display create more halo than price alone.
+- **Measurement**: the brand's other PPG at the same retailer, actual vs baseline during the promo weeks. Weeks where that PPG is on its own deal or in its post-promo dip are excluded; if none remain, the effect is *not measurable*.
+- **Range ROI** (`range_roi`) = (incremental gross margin + cross-product margin) ÷ total trade spend. A promo can pay back on its own PPG (`promo_roi` ≥ 1) and still lose money for the range.
+
 ## Ship attainment and service
 - **Ship attainment %** = shipped value ÷ target value for the period. 1.0 = on target.
 - **Case fill rate** = shipped units ÷ ordered units. The service level the retailer experienced.

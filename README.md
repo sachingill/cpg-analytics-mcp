@@ -34,7 +34,7 @@ Demo agents talk to a database. Production agents need:
 ```bash
 uv sync
 uv run cpg-mcp-generate      # builds data/cpg.duckdb (2 years, 5 retailers, 20 SKUs, ~500 promos)
-uv run pytest -q             # 22 tests: guardrails, RBAC, semantic layer, end-to-end tools
+uv run pytest -q             # 26 tests: guardrails, RBAC, semantic layer, promo economics, end-to-end tools
 ```
 
 ### Connect an LLM client
@@ -95,7 +95,7 @@ The audit log is written inside the container (`/app/logs/audit.jsonl`), so with
 | Tool | `describe_table` | Columns (restricted ones hidden) |
 | Tool | `list_metrics` | Governed metrics + allowed dimensions |
 | Tool | `get_metric` | Compute metrics by dimensions/filters/date range |
-| Tool | `analyze_promotion` | Post-event analysis + verdict for one promo |
+| Tool | `analyze_promotion` | Post-event analysis + verdict for one promo, incl. cannibalisation / halo and range ROI |
 | Tool | `run_sql` | Guarded ad-hoc SELECT (fallback) |
 | Resource | `cpg://glossary` | Business definitions ([glossary](src/cpg_analytics_mcp/knowledge/cpg_glossary.md)) |
 | Prompt | `promo_post_event_review` | Structured promo review workflow |
@@ -111,7 +111,7 @@ dim_product (brand, PPG, cost) ─┼─ fact_sales      (weekly sell-out, basel
 dim_retailer (channel) ─────────┼─ fact_shipments  (weekly sell-in: ordered vs shipped)
                                 └─ fact_targets    (monthly target by retailer x brand)
 
-Views:  v_sales_enriched · v_promo_performance (uplift, dip, spend, ROI) · v_ship_attainment
+Views:  v_sales_enriched · v_promo_performance (uplift, dip, cannibalisation/halo, spend, ROI, range ROI) · v_ship_attainment
 ```
 
 The generator encodes real commercial behaviour so the analysis has something true to find:

@@ -121,6 +121,41 @@ def test_get_metric_promo_roi_by_channel(settings):
     assert by_channel["Discounter"]["promo_roi"] < by_channel["Grocery"]["promo_roi"]
 
 
+def test_range_roi_reflects_cannibalisation_and_halo(settings):
+    out = call(create_server(settings), "get_metric", metrics=["promo_roi", "range_roi"], group_by=["brand"])
+    by_brand = {r["brand"]: r for r in out["records"]}
+    # substitutes (liquid vs pods) cannibalise: the range earns less than the promoted PPG
+    assert by_brand["FreshFold"]["range_roi"] < by_brand["FreshFold"]["promo_roi"]
+    # complements (toothpaste + mouthwash) get a halo: the range earns more
+    assert by_brand["DentaGuard"]["range_roi"] > by_brand["DentaGuard"]["promo_roi"]
+
+
+def test_display_amplifies_halo(settings):
+    out = call(create_server(settings), "get_metric", metrics=["cross_product_margin", "promo_count"],
+               group_by=["display"], filters={"brand": "DentaGuard", "cross_effect": ["halo", "cannibalisation"]})
+    per_promo = {r["display"]: r["cross_product_margin"] / r["promo_count"] for r in out["records"]}
+    assert per_promo[True] > per_promo[False] > 0
+
+
+def test_promo_economics_stay_calibrated(settings):
+    # Cross effects only touch clean sibling weeks, so each promo's own economics are unchanged.
+    out = call(create_server(settings), "run_sql",
+               sql="SELECT AVG(CASE WHEN gross_roi >= 1 THEN 1.0 ELSE 0 END) AS payback FROM v_promo_performance")
+    assert 0.20 <= out["rows"][0][0] <= 0.35
+    out = call(create_server(settings), "get_metric", metrics=["promo_roi"], group_by=["discount_band"])
+    roi = {r["discount_band"]: r["promo_roi"] for r in out["records"]}
+    assert roi["<20%"] > roi["30-44%"] > roi["45%+"]
+
+
+def test_analyze_promotion_explains_cannibalisation(settings):
+    server = create_server(settings)
+    found = call(server, "run_sql", sql="SELECT promo_id FROM v_promo_performance "
+                 "WHERE brand = 'FreshFold' AND cross_effect = 'cannibalisation' ORDER BY promo_id LIMIT 1")
+    out = call(server, "analyze_promotion", promo_id=found["rows"][0][0])
+    assert out["cross_effect"] == "cannibalisation" and out["range_roi"] < out["gross_roi"]
+    assert any(n.startswith("Cannibalisation:") for n in out["notes"])
+
+
 def test_analyze_promotion_and_audit(settings):
     server = create_server(settings)
     out = call(server, "analyze_promotion", promo_id="P0001")

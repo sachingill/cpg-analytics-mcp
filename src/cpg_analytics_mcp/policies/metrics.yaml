@@ -18,7 +18,7 @@ sources:
     time_column: start_week
     description: One row per promotion event with post-event analysis.
     dimensions: [promo_id, retailer_name, channel, brand, category, ppg, mechanic,
-                 discount_band, feature, display, duration_weeks]
+                 discount_band, feature, display, duration_weeks, cross_effect]
   shipments:
     table: v_ship_attainment
     time_column: month_start
@@ -67,6 +67,20 @@ metrics:
     description: >
       Gross promo ROI = incremental gross margin / total trade spend. Above 1.0 means
       the promotion paid back its investment. (Net ROI = gross ROI - 1.)
+  cross_product_margin:
+    source: promo
+    expr: ROUND(SUM(cross_product_margin), 2)
+    derived_from: [cogs_per_unit, incremental_gross_margin]
+    description: >
+      Margin change on the brand's other PPG during the promo, measured against its baseline.
+      Negative = cannibalisation (shoppers switched from it), positive = halo.
+  range_roi:
+    source: promo
+    expr: ROUND(SUM(range_incremental_margin) / NULLIF(SUM(total_trade_spend), 0), 3)
+    derived_from: [cogs_per_unit, incremental_gross_margin]
+    description: >
+      Range-level ROI = (incremental gross margin + cross-product margin) / total trade spend.
+      Same as promo_roi but also counts cannibalisation and halo on the brand's other PPG.
   promo_count:
     source: promo
     expr: COUNT(*)

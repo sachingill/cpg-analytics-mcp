@@ -183,7 +183,11 @@ def create_server(settings: Settings | None = None) -> MCPServer:
 
     @mcp.tool(annotations=READ_ONLY)
     def analyze_promotion(promo_id: str) -> dict[str, Any]:
-        """Post-event analysis for one promotion: uplift, dip, trade spend, ROI, and a plain verdict."""
+        """Post-event analysis for one promotion, with a plain verdict.
+
+        Covers uplift, post-promo dip, cannibalisation or halo on the brand's other PPG,
+        trade spend, ROI on the promoted PPG, and range ROI.
+        """
         def body():
             if not app.policy.can_use_metric("promo_roi"):
                 raise ToolError(f"Role '{app.policy.name}' may not view promotion financials.")
@@ -206,6 +210,21 @@ def create_server(settings: Settings | None = None) -> MCPServer:
                 notes.append("Discounter channel is EDLP-led; promotions there are usually low-ROI.")
             if not (p["feature"] or p["display"]):
                 notes.append("No feature or display support: price-only promos tend to lift less.")
+            range_roi = p["range_roi"] or 0
+            cross_units, cross_margin = p["cross_product_units"] or 0, p["cross_product_margin"] or 0
+            if p["cross_effect"] == "cannibalisation":
+                notes.append(f"Cannibalisation: the brand's other PPG lost {abs(cross_units):,.0f} units "
+                             f"(£{abs(cross_margin):,.0f} margin) while this one was on deal.")
+            elif p["cross_effect"] == "halo":
+                notes.append(f"Halo: the brand's other PPG gained {cross_units:,.0f} units "
+                             f"(£{cross_margin:,.0f} margin) without being discounted.")
+            elif p["cross_effect"] == "not measurable":
+                notes.append("Cross-product effect not measurable: the brand's other PPG was on its own deal "
+                             "or in its post-promo dip.")
+            if roi >= 1 > range_roi:
+                notes.append("Paid back on its own PPG but not for the range once cannibalisation is counted.")
+            elif range_roi >= 1 > roi:
+                notes.append("Did not pay back on its own PPG, but halo makes it pay back for the range.")
             p["verdict"] = verdict
             p["notes"] = notes
             p["row_count"] = 1
@@ -216,7 +235,8 @@ def create_server(settings: Settings | None = None) -> MCPServer:
 
     @mcp.resource("cpg://glossary", name="CPG glossary", mime_type="text/markdown")
     def glossary() -> str:
-        """Business definitions: sell-in vs sell-out, baseline, uplift, trade spend, promo ROI, ship attainment."""
+        """Business definitions: sell-in vs sell-out, baseline, uplift, trade spend, promo ROI,
+        cannibalisation, halo, ship attainment."""
         return (PACKAGE_DIR / "knowledge" / "cpg_glossary.md").read_text()
 
     @mcp.prompt()
@@ -225,8 +245,9 @@ def create_server(settings: Settings | None = None) -> MCPServer:
         return (
             f"Do a post-event review of promotion {promo_id}.\n"
             "1. Call analyze_promotion for the headline numbers.\n"
-            "2. Compare it with similar events (same retailer and mechanic) using get_metric on promo_roi.\n"
-            "3. Explain what drove the result (depth, support, dip, channel).\n"
+            "2. Compare it with similar events (same retailer and mechanic) using get_metric on promo_roi "
+            "and range_roi.\n"
+            "3. Explain what drove the result (depth, support, dip, cannibalisation or halo, channel).\n"
             "4. Recommend keep / fix / stop, with one concrete change for the next event."
         )
 
