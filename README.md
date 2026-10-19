@@ -13,6 +13,8 @@ Built on fictional health & hygiene brands. No client data.
 > Ask an LLM: *"Which promotions at MegaMart didn't pay back last quarter, and why?"*
 > It answers using one approved ROI definition, with every query checked by guardrails and written to an audit log.
 
+![Architecture: LLM client → MCP interface → role policy → semantic layer or SQL guardrails → read-only warehouse, with every call audited](docs/architecture.svg)
+
 ## Why this exists
 
 Demo agents talk to a database. Production agents need:

@@ -1,5 +1,7 @@
 # Architecture
 
+![Architecture diagram](architecture.svg)
+
 ```mermaid
 flowchart LR
     U[User] --> C[LLM / MCP client]

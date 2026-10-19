@@ -15,7 +15,8 @@
 - [ ] Databricks adapter (SQL warehouse, Unity Catalog permissions as the source of truth)
 - [ ] Cannibalisation + halo in the generator and promo analysis
 - [x] Dockerfile + GitHub Actions (lint, tests, container smoke test)
-- [ ] Architecture diagram image + 2-minute demo video
+- [x] Architecture diagram image
+- [ ] 2-minute demo video (recording done locally; upload later)
 
 ## Project 2 (Nov): evals and observability
 - [ ] Golden question set (50 business questions with expected answers)
