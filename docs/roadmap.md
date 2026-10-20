@@ -12,7 +12,7 @@
 ## Week 2–3: production hardening
 - [ ] Streamable HTTP transport + OAuth token verification; role from token claims
 - [x] Snowflake adapter in [mcp-warehouse-adapters](https://github.com/sachingill/mcp-warehouse-adapters): key-pair auth, role per server role, query tags, masking policy; passes the warehouse contract
-- [ ] Databricks adapter in mcp-warehouse-adapters (SQL warehouse, Unity Catalog permissions as the source of truth)
+- [x] Databricks adapter in [mcp-warehouse-adapters](https://github.com/sachingill/mcp-warehouse-adapters): service principal per role, raw layer + dynamic views; same numbers on DuckDB, Snowflake and Databricks
 - [x] Cannibalisation + halo in the generator and promo analysis (measured from data; `range_roi` metric)
 - [x] Dockerfile + GitHub Actions (lint, tests, container smoke test)
 - [x] Architecture diagram image
