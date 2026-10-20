@@ -11,8 +11,8 @@
 
 ## Week 2–3: production hardening
 - [ ] Streamable HTTP transport + OAuth token verification; role from token claims
-- [ ] Snowflake adapter (Snowpark / connector, key-pair auth, warehouse + role per user)
-- [ ] Databricks adapter (SQL warehouse, Unity Catalog permissions as the source of truth)
+- [x] Snowflake adapter in [mcp-warehouse-adapters](https://github.com/sachingill/mcp-warehouse-adapters): key-pair auth, role per server role, query tags, masking policy; passes the warehouse contract
+- [ ] Databricks adapter in mcp-warehouse-adapters (SQL warehouse, Unity Catalog permissions as the source of truth)
 - [x] Cannibalisation + halo in the generator and promo analysis (measured from data; `range_roi` metric)
 - [x] Dockerfile + GitHub Actions (lint, tests, container smoke test)
 - [x] Architecture diagram image
