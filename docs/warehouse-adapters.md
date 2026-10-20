@@ -1,6 +1,6 @@
 # Design note: warehouse adapters
 
-**Status:** Slice 1 implemented · **Scope:** Slice 1 (core refactor in this repo). Snowflake and Databricks adapters live in
+**Status:** Slice 1 and contract tests implemented · **Scope:** Slice 1 (core refactor in this repo). Snowflake and Databricks adapters live in
 [`mcp-warehouse-adapters`](https://github.com/sachingill/mcp-warehouse-adapters).
 
 ## Problem
@@ -58,7 +58,7 @@ The choice stays inside one adapter because the rest of the server only sees `Wa
 
 1. **Pure refactor** (this repo): Protocol, factory, `to_dialect()`, `cap_rows()`, dialect-aware `check_sql`.
    DuckDB stays the only adapter. Behaviour unchanged; the existing tests stay green.
-2. **Contract tests** plus offline translation tests (semantic SQL → Snowflake and Databricks syntax).
+2. **Contract tests** (`cpg_analytics_mcp.testing.warehouse_contract`): one reusable suite, run here against DuckDB, imported by the adapters repo. Also requires lowercase column names and plain Python values (Snowflake returns UPPERCASE and `Decimal`).
 3. **Snowflake adapter** (adapters repo): key-pair auth, role, query tag, statement timeout, loader, masking
    policy on `cogs_per_unit`. Integration tests run only when credentials are set.
 4. **Databricks adapter**: SQL warehouse, OAuth, Unity Catalog grants and a column mask, system-table audit.
