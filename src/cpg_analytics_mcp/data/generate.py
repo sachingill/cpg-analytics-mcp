@@ -317,7 +317,8 @@ dip AS (  -- two non-promoted weeks after the promo, same retailer x PPG
     GROUP BY pr.promo_id
 ),
 ppg_attr AS (
-    SELECT ppg, ANY_VALUE(brand) AS brand, ANY_VALUE(category) AS category
+    -- MIN, not ANY_VALUE: one brand/category per PPG, and MIN translates to every warehouse
+    SELECT ppg, MIN(brand) AS brand, MIN(category) AS category
     FROM dim_product GROUP BY ppg
 ),
 cross_product AS (  -- same brand's other PPG, same retailer, during the promo weeks
