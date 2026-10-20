@@ -56,7 +56,8 @@ class WarehouseContract:
         cat = wh.catalog()
         for name, kind in EXPECTED_OBJECTS.items():
             assert name in cat, f"missing {name}"
-            assert cat[name]["type"] == kind
+            # a base table may be exposed as a view (e.g. a dynamic view over a protected raw layer)
+            assert cat[name]["type"] in ({"table", "view"} if kind == "table" else {"view"}), name
             assert cat[name]["columns"], f"{name} has no columns"
             assert all(c == c.lower() for c in cat[name]["columns"]), f"{name} columns not lowercase"
         assert "cogs_per_unit" in cat["dim_product"]["columns"]
@@ -86,7 +87,8 @@ class WarehouseContract:
             sql, params = semantic.build([name])
             res = self.run(wh, sql, params)
             assert len(res.rows) == 1, name
-            assert isinstance(res.rows[0][0], (int, float, type(None))), f"{name} is not a plain number"
+            # a real number, not NULL: a governed metric must work for this role even when raw inputs are hidden
+            assert isinstance(res.rows[0][0], (int, float)), f"{name} returned {res.rows[0][0]!r}, not a number"
 
     # --- failure modes ------------------------------------------------------------
 
